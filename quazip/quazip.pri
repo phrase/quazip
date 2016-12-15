@@ -1,7 +1,11 @@
 include(../common.pri)
-greaterThan(QT_MAJOR_VERSION, 4): QT *= widgets
+QT -= gui
 INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
+
+# ZLib dependency
+win32:INCLUDEPATH += $$[QT_INSTALL_PREFIX]/src/3rdparty/zlib
+unix:LIBS += -lz
 
 quazip-uselib:!quazip-buildlib {
     LIBS += -L$$QUAZIP_LIBDIR -l$$QUAZIP_LIBNAME
