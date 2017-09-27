@@ -5,12 +5,11 @@ DEPENDPATH += $$PWD
 
 # ZLib dependency
 greaterThan(QT_MAJOR_VERSION, 4){
-win32:INCLUDEPATH += $(MEMSOURCE_LIB)/qt5/qtbase/src/3rdparty/zlib
+win32:INCLUDEPATH += $$[QT_INSTALL_HEADERS]/QtZlib
 } else {
 win32:INCLUDEPATH += $(MEMSOURCE_LIB)/qt/src/3rdparty/zlib
 }
 
-#win32:INCLUDEPATH += $$[QT_INSTALL_PREFIX]/src/3rdparty/zlib
 unix:LIBS += -lz
 
 quazip-uselib:!quazip-buildlib {
