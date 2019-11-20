@@ -33,19 +33,35 @@ see quazip/(un)zip.h files for details. Basically it's the zlib license.
   be defined explicitly to avoid possible troubles with unnecessary
   importing/exporting.
   */
-#ifdef QUAZIP_STATIC
-#define QUAZIP_EXPORT
-#else
+//#ifdef QUAZIP_STATIC
+//#define QUAZIP_EXPORT
+//#else
 /**
  * When building a DLL with MSVC, QUAZIP_BUILD must be defined.
  * qglobal.h takes care of defining Q_DECL_* correctly for msvc/gcc.
  */
-#if defined(QUAZIP_BUILD)
-	#define QUAZIP_EXPORT Q_DECL_EXPORT
+//#if defined(QUAZIP_BUILD)
+//	#define QUAZIP_EXPORT Q_DECL_EXPORT
+//#else
+//	#define QUAZIP_EXPORT Q_DECL_IMPORT
+//#endif
+//#endif // QUAZIP_STATIC
+
+#if defined(Q_OS_WIN)
+#  if !defined(QUAZIP_EXPORT) && !defined(QUAZIP_IMPORT)
+#    define QUAZIP_EXPORT
+#  elif defined(QUAZIP_IMPORT)
+#    if defined(QUAZIP_EXPORT)
+#      undef QUAZIP_EXPORT
+#    endif
+#    define QUAZIP_EXPORT __declspec(dllimport)
+#  elif defined(QUAZIP_EXPORT)
+#    undef QUAZIP_EXPORT
+#    define QUAZIP_EXPORT __declspec(dllexport)
+#  endif
 #else
-	#define QUAZIP_EXPORT Q_DECL_IMPORT
+#  define QUAZIP_EXPORT
 #endif
-#endif // QUAZIP_STATIC
 
 #ifdef __GNUC__
 #define QUAZIP_UNUSED __attribute__((__unused__))

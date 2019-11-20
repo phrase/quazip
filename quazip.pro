@@ -1,3 +1,5 @@
 TEMPLATE=subdirs
-SUBDIRS=quazip qztest
-qztest.depends = quazip
+CONFIG += ordered
+include(common.pri)
+quazip-uselib:SUBDIRS=buildlib
+#SUBDIRS+=examples

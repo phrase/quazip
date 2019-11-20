@@ -1,1 +1,10 @@
 /doc
+Makefile
+.qmake.stash
+Makefile.Debug
+Makefile.Release
+*.obj
+*.pdb
+/buildlib/debug
+/config.pri
+/lib
