@@ -344,15 +344,23 @@ bool QuaZipFile::open(OpenMode mode, const QuaZipNewInfo& info,
     else
         zipClearFlags(p->zip->getZipFile(), ZIP_WRITE_DATA_DESCRIPTOR);
     p->setZipError(zipOpenNewFileInZip4_64(p->zip->getZipFile(),
+#if defined( USE_TEXTCODEC )
           p->zip->isUtf8Enabled()
             ? info.name.toUtf8().constData()
             : p->zip->getFileNameCodec()->fromUnicode(info.name).constData(),
+#else
+          info.name.toUtf8().constData(),
+#endif
           &info_z,
           info.extraLocal.constData(), info.extraLocal.length(),
           info.extraGlobal.constData(), info.extraGlobal.length(),
+#if defined( USE_TEXTCODEC )
           p->zip->isUtf8Enabled()
             ? info.comment.toUtf8().constData()
             : p->zip->getCommentCodec()->fromUnicode(info.comment).constData(),
+#else
+          info.comment.toUtf8().constData(),
+#endif
           method, level, (int)raw,
           windowBits, memLevel, strategy,
           password, (uLong)crc,
