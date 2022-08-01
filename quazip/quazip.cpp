@@ -45,9 +45,9 @@ class QuaZipPrivate {
     /// The pointer to the corresponding QuaZip instance.
     QuaZip *q;
     /// The codec for file names (used when UTF-8 is not enabled).
-    QTextCodec *fileNameCodec;
+    QTextCodec *fileNameCodec = NULL;
     /// The codec for comments (used when UTF-8 is not enabled).
-    QTextCodec *commentCodec;
+    QTextCodec *commentCodec = NULL;
     /// The archive file name.
     QString zipName;
     /// The device to access the archive.
@@ -79,7 +79,11 @@ class QuaZipPrivate {
     inline QTextCodec *getDefaultFileNameCodec()
     {
         if (defaultFileNameCodec == NULL) {
+#if defined( USE_TEXTCODEC )
             return QTextCodec::codecForLocale();
+#else
+            return NULL;
+#endif
         } else {
             return defaultFileNameCodec;
         }
@@ -87,8 +91,10 @@ class QuaZipPrivate {
     /// The constructor for the corresponding QuaZip constructor.
     inline QuaZipPrivate(QuaZip *q):
       q(q),
+#if defined( USE_TEXTCODEC )
       fileNameCodec(getDefaultFileNameCodec()),
       commentCodec(QTextCodec::codecForLocale()),
+#endif
       ioDevice(NULL),
       mode(QuaZip::mdNotOpen),
       hasCurrentFile_f(false),
@@ -107,8 +113,10 @@ class QuaZipPrivate {
     /// The constructor for the corresponding QuaZip constructor.
     inline QuaZipPrivate(QuaZip *q, const QString &zipName):
       q(q),
+#if defined( USE_TEXTCODEC )
       fileNameCodec(getDefaultFileNameCodec()),
       commentCodec(QTextCodec::codecForLocale()),
+#endif
       zipName(zipName),
       ioDevice(NULL),
       mode(QuaZip::mdNotOpen),
@@ -128,8 +136,10 @@ class QuaZipPrivate {
     /// The constructor for the corresponding QuaZip constructor.
     inline QuaZipPrivate(QuaZip *q, QIODevice *ioDevice):
       q(q),
+#if defined( USE_TEXTCODEC )
       fileNameCodec(getDefaultFileNameCodec()),
       commentCodec(QTextCodec::codecForLocale()),
+#endif
       ioDevice(ioDevice),
       mode(QuaZip::mdNotOpen),
       hasCurrentFile_f(false),
@@ -359,7 +369,11 @@ void QuaZip::close()
     case mdAdd:
       p->zipError=zipClose(p->zipFile_f, p->comment.isNull() ? NULL : isUtf8Enabled()
         ? p->comment.toUtf8().constData()
+#if defined( USE_TEXTCODEC )
         : p->commentCodec->fromUnicode(p->comment).constData());
+#else
+        : p->comment.toUtf8().constData());
+#endif
       break;
     default:
       qWarning("QuaZip::close(): unknown mode: %d", (int)p->mode);
@@ -425,9 +439,13 @@ QString QuaZip::getComment()const
   if((fakeThis->p->zipError=unzGetGlobalComment(p->unzFile_f, comment.data(), comment.size())) < 0)
     return QString();
   fakeThis->p->zipError = UNZ_OK;
+#if defined( USE_TEXTCODEC )
   unsigned flags = 0;
   return (unzGetFileFlags(p->unzFile_f, &flags) == UNZ_OK) && (flags & UNZ_ENCODING_UTF8)
     ? QString::fromUtf8(comment) : p->commentCodec->toUnicode(comment);
+#else
+  return QString::fromUtf8(comment);
+#endif
 }
 
 bool QuaZip::setCurrentFile(const QString& fileName, CaseSensitivity cs)
@@ -562,8 +580,13 @@ bool QuaZip::getCurrentFileInfo(QuaZipFileInfo64 *info)const
   info->diskNumberStart=info_z.disk_num_start;
   info->internalAttr=info_z.internal_fa;
   info->externalAttr=info_z.external_fa;
+#if defined( USE_TEXTCODEC )
   info->name=(info->flags & UNZ_ENCODING_UTF8) ? QString::fromUtf8(fileName) : p->fileNameCodec->toUnicode(fileName);
   info->comment=(info->flags & UNZ_ENCODING_UTF8) ? QString::fromUtf8(comment) : p->commentCodec->toUnicode(comment);
+#else
+  info->name=QString::fromUtf8(fileName);
+  info->comment=QString::fromUtf8(comment);
+#endif
   info->extra=extra;
   info->dateTime=QDateTime(
       QDate(info_z.tmu_date.tm_year, info_z.tmu_date.tm_mon+1, info_z.tmu_date.tm_mday),
@@ -588,8 +611,16 @@ QString QuaZip::getCurrentFileName()const
       NULL, 0, NULL, 0))!=UNZ_OK)
     return QString();
   fileName.resize(file_info.size_filename);
-  QString result = (file_info.flag & UNZ_ENCODING_UTF8)
-    ? QString::fromUtf8(fileName) : p->fileNameCodec->toUnicode(fileName);
+  QString result;
+  if (file_info.flag & UNZ_ENCODING_UTF8)
+      result = QString::fromUtf8(fileName);
+  else
+#if defined( USE_TEXTCODEC )
+      result = p->fileNameCodec->toUnicode(fileName);
+#else
+      result = QString::fromUtf8(fileName);
+#endif
+
   if (result.isEmpty())
       return result;
   // Add to directory map
@@ -604,7 +635,11 @@ void QuaZip::setFileNameCodec(QTextCodec *fileNameCodec)
 
 void QuaZip::setFileNameCodec(const char *fileNameCodecName)
 {
-    p->fileNameCodec=QTextCodec::codecForName(fileNameCodecName);
+#if defined( USE_TEXTCODEC )
+  p->fileNameCodec=QTextCodec::codecForName(fileNameCodecName);
+#else
+  Q_UNUSED(fileNameCodecName);
+#endif
 }
 
 void QuaZip::setOsCode(uint osCode)
@@ -629,7 +664,11 @@ void QuaZip::setCommentCodec(QTextCodec *commentCodec)
 
 void QuaZip::setCommentCodec(const char *commentCodecName)
 {
+#if defined( USE_TEXTCODEC )
   p->commentCodec=QTextCodec::codecForName(commentCodecName);
+#else
+  Q_UNUSED(commentCodecName);
+#endif
 }
 
 QTextCodec *QuaZip::getCommentCodec()const
@@ -802,7 +841,11 @@ void QuaZip::setDefaultFileNameCodec(QTextCodec *codec)
 
 void QuaZip::setDefaultFileNameCodec(const char *codecName)
 {
+#if defined( USE_TEXTCODEC )
     setDefaultFileNameCodec(QTextCodec::codecForName(codecName));
+#else
+    Q_UNUSED(codecName);
+#endif
 }
 
 void QuaZip::setDefaultOsCode(uint osCode)

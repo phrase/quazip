@@ -11,7 +11,9 @@ win32:INCLUDEPATH += $(MEMSOURCE_LIB)/qt/src/3rdparty/zlib
 }
 
 greaterThan( QT_MAJOR_VERSION, 5 ) {
-    QT += core5compat
+    use-textcodec:{
+        QT += core5compat
+    }
 }
 
 unix:LIBS += -lz
