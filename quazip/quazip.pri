@@ -28,7 +28,6 @@ quazip-uselib:!quazip-buildlib {
         $$PWD/quaadler32.h \
         $$PWD/quachecksum32.h \
         $$PWD/quacrc32.h \
-        $$PWD/quagzipfile.h \
         $$PWD/quaziodevice.h \
         $$PWD/quazipdir.h \
         $$PWD/quazipfile.h \
@@ -43,7 +42,6 @@ quazip-uselib:!quazip-buildlib {
            $$PWD/JlCompress.cpp \
            $$PWD/quaadler32.cpp \
            $$PWD/quacrc32.cpp \
-           $$PWD/quagzipfile.cpp \
            $$PWD/quaziodevice.cpp \
            $$PWD/quazip.cpp \
            $$PWD/quazipdir.cpp \
